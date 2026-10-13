@@ -108,3 +108,63 @@ Results describe only the imported sample and historical dataset values. They do
 Contributor searches match author names, which may be shared by different people. Commit results are not chronological.
 
 Future improvements include stronger validation of commit and language records, a configurable import limit, and Redis indexes to improve searches and rankings.
+
+
+## Week 2 MongoDB Application
+
+`mongoActivityExplorer.py` imports GitHub Archive data into the
+`SDC435L_GitHubArchive` MongoDB database and provides an interactive
+menu for creating, reading, updating, and deleting documents.
+
+### Requirements
+
+- Python 3
+- MongoDB Server running locally on port 27017
+- PyMongo, listed in requirements.txt
+- The course dataset at data/GitHubArchive-Dataset.zip
+
+Tested on Windows using PowerShell and a Python virtual environment.
+
+### Setup and Running on Windows
+
+```powershell
+py -m venv .venv-windows
+.\.venv-windows\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv-windows\Scripts\python.exe .\mongoActivityExplorer.py
+```
+
+Start MongoDB before running the application. The default connection
+is mongodb://localhost:27017/. An optional MONGO_URI environment
+variable can supply a different connection string.
+
+Select option 1 to import the first 5,000 records from each of
+Sample_Repos.json, Commits.json, and Languages.json. Reimporting
+replaces matching documents using stable identifiers.
+
+### Current Features
+
+- Interactive document CRUD with validation and deletion confirmation.
+- Five shortest and longest repository names using MongoDB aggregation.
+- Repository watch count distribution using MongoDB aggregation.
+- Top 15 commit message words using Python word counts.
+
+Updates replace the complete document. Repository names identify
+repository and language records; full commit hashes identify commits.
+
+### Testing Completed
+
+- Imported 15,000 documents across three collections.
+- Created and retrieved a test repository.
+- Updated its watch count from 10 to 25 and verified the change.
+- Deleted the test repository and verified it was absent.
+- Tested all three analysis features.
+- Watch count distribution included 5,000 repositories.
+- Word frequency analyzed 5,000 commit messages.
+
+### Analysis Limitations
+
+Results describe the imported historical sample, not all GitHub
+repositories or current activity. Repository name lengths include
+the owner name and slash. Word counts include repeated occurrences
+and may include words from URLs or commit metadata. Percentages
+may not total exactly 100% because of rounding.
