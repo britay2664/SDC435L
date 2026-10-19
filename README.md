@@ -1,7 +1,7 @@
 # GitHub Activity Explorer
 
-**Author:** Brian Taylor  
-**Course:** SDC435L Advanced Databases Lab  
+**Author:** Brian Taylor
+**Course:** SDC435L Advanced Databases Lab
 **Project:** Week 1
 
 A menu-driven Python application that imports GitHub Archive data into Redis and lets users create, read, update, and delete records.
@@ -168,3 +168,83 @@ repositories or current activity. Repository name lengths include
 the owner name and slash. Word counts include repeated occurrences
 and may include words from URLs or commit metadata. Percentages
 may not total exactly 100% because of rounding.
+
+## Week 3 Cassandra Application
+
+`cassandraActivityExplorer.py` imports GitHub Archive data into Cassandra
+and provides interactive repository CRUD and three analysis features.
+
+### Requirements
+
+- Ubuntu Linux, including Ubuntu through WSL
+- Python 3.11 with venv support
+- Cassandra running locally on port 9042
+- A valid Cassandra username and password
+- cassandra-driver 3.30.1
+- Course dataset at data/GitHubArchive-Dataset.zip
+
+### Setup and Running
+
+```bash
+python3.11 -m venv .venv-cassandra
+source .venv-cassandra/bin/activate
+python -m pip install -r requirements-cassandra.txt
+python cassandraActivityExplorer.py
+```
+
+Start Cassandra before running the application. Enter your Cassandra
+credentials at the prompts. Passwords are not stored in the source code.
+
+The application creates the sdc435l_github_archive keyspace and four
+tables: repositories, commits, languages, and commits_by_author.
+The account must be allowed to create and access these objects.
+
+The keyspace uses SimpleStrategy with replication factor 1 for this
+single-node local lab.
+
+### Current Features
+
+1. Import dataset
+2. Create a repository
+3. Read a repository
+4. Update a repository watch count
+5. Delete a repository after confirmation
+6. Rank repositories by stored commit count
+7. Look up commits by exact author name
+8. Display a repository's language breakdown
+0. Exit
+
+The importer processes the first 5,000 records from Sample_Repos.json,
+Commits.json, and Languages.json directly from the ZIP. Reimporting
+updates matching primary keys. Missing author names are labeled
+(Unknown author).
+
+Repository CRUD uses primary-key queries and conditional writes.
+The commits_by_author table supports direct author partition lookups.
+Language breakdown uses the repository primary key. Commit ranking
+scans stored commits and counts repository associations in Python.
+
+### Testing Completed
+
+- Imported 5,000 records from each of the three source files.
+- Created and read britay2664/demo with watch count 10.
+- Updated the count to 25 and verified the change.
+- Deleted the test repository and confirmed it was absent.
+- Ranked repository associations from 5,000 stored commits.
+- Retrieved 167 commits for Teddy Katz, displaying the first 20.
+- Retrieved 80 bytes of C for lemi136/puntovent.
+- Passed Python syntax compilation.
+
+### Limitations and Future Improvements
+
+Results describe the imported historical sample, not current trends.
+A commit can belong to multiple repositories. Author names are
+case-sensitive and may be shared by different people.
+
+Ranking performs a sample-wide scan and is intended for this lab.
+Larger datasets would need a different approach to maintaining rankings.
+Author lookup entries are written separately from main commit records;
+an interrupted import may require a successful rerun to restore agreement.
+
+Future improvements include configurable import limits, stronger input
+validation, and improved recovery for interrupted imports.
