@@ -248,3 +248,104 @@ an interrupted import may require a successful rerun to restore agreement.
 
 Future improvements include configurable import limits, stronger input
 validation, and improved recovery for interrupted imports.
+
+## Week 4 Neo4j Application
+
+`neo4jActivityExplorer.py` imports GitHub Archive data into a graph
+and provides interactive repository CRUD and relationship analysis.
+
+### Requirements
+
+- Python 3.10 or newer
+- A running local Neo4j instance supporting uniqueness constraints
+- Neo4j Python driver 6.4.1
+- A Neo4j account permitted to create constraints and read/write data
+- Course dataset at data/GitHubArchive-Dataset.zip
+
+Tested on Windows using PowerShell. The application connects to
+neo4j://127.0.0.1:7687 and uses the neo4j database.
+Credentials are entered at runtime.
+
+### Setup and Running
+
+From the project folder:
+
+```powershell
+py -m venv .venv-windows
+.\.venv-windows\Scripts\python.exe -m pip install -r requirements-neo4j.txt
+.\.venv-windows\Scripts\python.exe .\neo4jActivityExplorer.py
+```
+
+Start the local Neo4j instance before running the application.
+Select option 1 on the first run to import the dataset.
+Keep the original dataset ZIP filename; extraction is unnecessary.
+
+### Graph Structure
+
+Project node labels:
+
+- SDC435LRepository
+- SDC435LCommit
+- SDC435LContributor
+- SDC435LLanguage
+
+Project relationships:
+
+- Contributor -[SDC435L_AUTHORED]-> Commit
+- Commit -[SDC435L_IN_REPOSITORY]-> Repository
+- Repository -[SDC435L_USES_LANGUAGE]-> Language
+
+Language relationships store recorded byte counts.
+Uniqueness constraints identify repositories, commits, contributors,
+and languages. Project queries use these distinct labels.
+
+### Current Features
+
+1. Import dataset
+2. Create a repository
+3. Read a repository
+4. Update a repository watch count
+5. Delete a repository after confirmation
+6. List contributors associated with a repository
+7. Find repositories sharing contributor identities
+8. Find repositories sharing programming languages
+0. Exit
+
+The importer processes the first 5,000 records from each of
+Sample_Repos.json, Commits.json, and Languages.json.
+Writes use batches of 250 records and parameterized Cypher queries.
+
+Reimporting matches existing nodes and replaces imported commit
+and language associations within each batch transaction.
+It does not remove all nodes absent from the current import.
+
+Repository creation rejects duplicate names. Updates affect existing
+repositories only. Deletion removes the selected repository and its
+attached relationships, leaving related nodes.
+
+### Testing Completed
+
+- Connected successfully and created graph constraints.
+- Imported 5,000 records from each of the three source files.
+- Created and read britay2664/demo with watch count 10.
+- Updated the watch count to 25 and verified the change.
+- Deleted the test repository and verified it was absent.
+- Tested all three graph analysis options successfully.
+
+### Limitations and Future Improvements
+
+Results describe the imported historical sample, not current GitHub
+activity. Contributor identity uses dataset email where available.
+Without email, the application uses a commit-specific fallback.
+Email identities may still be shared or inconsistent.
+
+Shared contributors do not prove direct collaboration. Shared languages
+do not establish similar code or purpose. Some repositories introduced
+by commit or language records have no recorded watch count.
+
+Import batches commit separately, so interrupted imports can leave
+partial data. Unconnected contributor and language nodes may remain
+after associations are replaced.
+
+Future improvements include configurable import limits, stronger
+validation, improved identity handling, and graph visualization.
